@@ -1,0 +1,84 @@
+\documentclass[a4paper]{article}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lipsum}
+\usepackage{longtable,tabu}
+\usepackage{tabularx}
+\usepackage{framed}
+\usepackage{eurosym}
+\usepackage[spanish,english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{calc}
+
+\setlength{\headheight}{190pt}
+\usepackage[includeheadfoot,margin=0.8cm]{geometry}
+\fancyhf{}
+\fancyfoot[L]{
+Insc. Reg. Merc. de Zaragoza, tomo 1721, folio 15, hoja n Z-15334, insc. 1\textsuperscript{a} Zaragoza, 16-2-1995 - N.I.F. ES-B50624410
+}
+
+\fancyhead[L]{
+    \let\\=\newline
+    \begin{tabularx}{\textwidth - 4cm}{Xl}
+        \includegraphics[width=7cm]{FAVEGA}\\
+        Fabricaciones y Ventas para Ganaderia, S.L. & {\huge FACTURA}\\
+        Ctra. Logrono km 247,3 & {{ customer_name }}\\
+        50011 ZARAGOZA (Spain) & {{ customer_address }}\\
+        Telf. 976 771865\\
+        Fax. 976 787320 & {{ customer_zip_code }} {{ customer_city }}\\
+        e-mail: favega@favega.com & {{ customer_state }}\\
+        http://favega.com & {{ customer_country }}\\
+    \end{tabularx}
+    \vskip10pt
+    \makebox[\linewidth][s]{
+        \begin{tabular}{|c|}
+        \hline
+        {\bfseries FECHA} \\ \hline
+            {{ date }} \\ \hline
+        \end{tabular}
+        \begin{tabular}{|c|}
+        \hline
+        {\bfseries COD. CLIENTE} \\ \hline
+            {{ customer_code }} \\ \hline
+        \end{tabular}
+        \begin{tabular}{|c|}
+        \hline
+        {\bfseries C.I.F./N.I.F.} \\ \hline
+            {{ customer_id }} \\ \hline
+        \end{tabular}
+        \begin{tabular}{|c|}
+        \hline
+        {\bfseries FACTURA NUM.} \\ \hline
+            {{ series }}-{{ number }} \\ \hline
+        \end{tabular}
+    }
+}
+\renewcommand{\headrulewidth}{0pt}
+\title{FAVEGA Invoice}
+\begin{document}
+\pagestyle{fancy}
+\begin{longtabu}{|X[l]|r|r|r|r|}
+\hline \centering{DESCRIPCION} & \centering{CANTIDAD} & \centering{PRECIO} & \centering{DTO.} & \centering{IMPORTE}\\\hline\endhead\hline\endfoot\
+{% for product in products -%}
+{{ product.description }} & {{ product.amount }} & {{ product.price }} & {{ product.discount }} & {{ product.discounted_price }}\\
+{%- endfor %}
+\end{longtabu}
+\vfill
+\noindent
+\begin{minipage}{\textwidth}
+\noindent
+\begin{tabu}{|X[c]|c|c|c|c|c|c|c|}
+\hline SUMA IMPORTES & & & & BASE IMPONIBLE & I.V.A. & CUOTA I.V.A. & TOTAL FACTURA \euro\\\hline
+{{ gross_total }} & {{ early_payment_discount_percent }} & & {{ early_payment_discount_amount }} & {{ tax_1_taxable_amount }} & {{ tax_1_percent }} & {{ tax_1_amount }} & \\
+& {{ vat_return_percent }} & {{ vat_return_amount }} & & {{ tax_2_taxable_amount }} & {{ tax_2_percent }} & {{ tax_2_amount }} & \\
+& {{ income_tax_percent }} & {{ income_tax_amount }} & & {{ tax_3_taxable_amount }} & {{ tax_3_percent }} & {{ tax_3_amount }} & {{ net_total }}\\
+\hline
+\end{tabu}
+\begin{framed}
+\noindent
+{{ payment_method }}\hspace{7cm} {{ bank_info }}\\
+{{ expiration_date }}\\
+{{ expiration_surcharge }}
+\end{framed}
+\end{minipage}
+\end{document}
