@@ -1,13 +1,20 @@
 # coding=utf-8
+import logging
+import re
+import smtplib
+import subprocess
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import smtplib
-import subprocess
-import re
 
+import errno
 from jinja2 import Environment, FileSystemLoader
+
 from settings import *
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('InvoicePiglet')
+logger.setLevel(logging.INFO)
 
 
 class InvoiceParser(object):
@@ -62,15 +69,15 @@ class LatexToPdfConverter(object):
     @staticmethod
     def export(latex, pdf_file_location):
         temp_file = pdf_file_location.replace('.pdf', '.tex')
-        print(temp_file)
         with open(temp_file, 'w', encoding='utf-8') as tf:
             tf.write(latex)
 
         command = ['pdflatex', temp_file, '-enable-installer', '-output-directory',
                    os.path.dirname(pdf_file_location)]
-        print(" ".join(command))
+        logger.info("Executing", " ".join(command))
 
-        subprocess.call(command, shell=True)
+        FNULL = open(os.devnull, 'w')
+        subprocess.call(command, shell=True, stdout=FNULL, stderr=FNULL)
         os.remove(temp_file)
         os.remove(temp_file.replace('.tex', '.aux'))
         os.remove(temp_file.replace('.tex', '.log'))
@@ -107,31 +114,47 @@ class InvoiceEmailer(object):
             s.starttls()
             s.login(SMTP_USER, SMTP_PASSWORD)
             s.sendmail(msg['From'], msg['To'], msg.as_string())
-        except:
-            print("Error sending email to " + invoice['customer_email'])
+        except smtplib.SMTPException as e:
+            logger.error("Error sending email to", invoice['customer_email'], e)
+        else:
+            logger.info("Successfully sent email to", invoice['customer_email'])
+
+
+def create_output_dir():
+    try:
+        os.mkdir(OUTPUT_DIR)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            logger.info('Could not create output directory: directory already exists.')
+        else:
+            logger.error('Could not create output directory:', e)
+
+
+def create_no_email_output_dir():
+    try:
+        os.mkdir(NO_EMAIL_OUTPUT_DIR)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            logger.info('Could not create output directory: directory already exists.')
+        else:
+            logger.error('Could not create output directory:', e)
 
 
 if __name__ == "__main__":
-    try:
-        os.mkdir(OUTPUT_DIR)
-    except:
-        pass
-    try:
-        os.mkdir(NO_EMAIL_OUTPUT_DIR)
-    except:
-        pass
-
+    create_output_dir()
+    create_no_email_output_dir()
     with open('invoices.txt', 'r') as file:
         parser = InvoiceParser()
         invoices = parser.parse_invoices("".join(file.readlines()))
         invoices_with_no_email = [invoice for invoice in invoices if not invoice['customer_email']]
         invoices_with_email = [invoice for invoice in invoices if invoice['customer_email']]
-        for invoice in invoices_with_no_email:
+        for invoice in invoices:
             rendered_latex = InvoiceRenderer().render_invoice(invoice)
-            pdf_file = os.path.join(NO_EMAIL_OUTPUT_DIR, "Factura {}-{}.pdf".format(invoice['series'], invoice['number']))
+            if invoice.get('customer_email'):
+                pdf_file = os.path.join(OUTPUT_DIR, "Factura {}-{}.pdf".format(invoice['series'], invoice['number']))
+            else:
+                pdf_file = os.path.join(NO_EMAIL_OUTPUT_DIR, "Factura {}-{}.pdf".format(invoice['series'],
+                                                                                        invoice['number']))
             LatexToPdfConverter.export(rendered_latex, pdf_file)
-        for invoice in invoices_with_email:
-            rendered_latex = InvoiceRenderer().render_invoice(invoice)
-            pdf_file = os.path.join(OUTPUT_DIR, "Factura {}-{}.pdf".format(invoice['series'], invoice['number']))
-            LatexToPdfConverter.export(rendered_latex, pdf_file)
-            InvoiceEmailer.send_invoice(invoice, pdf_file)
+            if invoice.get('customer_email'):
+                InvoiceEmailer.send_invoice(invoice, pdf_file)
