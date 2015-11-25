@@ -5,14 +5,15 @@ NO_EMAIL_OUTPUT_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 
 
 LATEX_ESCAPES = [
     ('\\', '\\textbackslash{}'),
+    ('{', '\\{'),
+    ('}', '\\}'),
+    ('^', '\\^{}'),
+    ('~', '\\~{}'),
+    ('&', '\\&'),
+    ('_', '\\_'),
     ('#', '\\#'),
     ('$', '\\$'),
     ('%', '\\%'),
-    ('^', '\\^{}'),
-    ('&', '\\&'),
-    ('_', '\\_'),
-    ('{', '\\{'),
-    ('~', '\\~{}'),
 ]
 
 PRODUCT_REGEX = ("<producto>(?P<description>.*)</>"
@@ -56,3 +57,9 @@ INVOICE_REGEXES = [
     ('customer_zip_code', "<administracion_codigo_postal>(.*)"),
     ('customer_email', "<administracion_email>(.*)"),
 ]
+
+
+SMTP_SERVER = ''
+SMTP_PORT = ''
+SMTP_USER = ''
+SMTP_PASSWORD = ''
