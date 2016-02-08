@@ -15,9 +15,12 @@ logger.setLevel(logging.DEBUG)
 
 def render_invoice(invoice):
     logger.debug(invoice)
+    from pprint import pprint
+    pprint(invoice)
     invoice = escape_dict_values_latex(invoice)
-    logger.debug(invoice)
-    env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
+    pprint(invoice)
+    env = Environment(loader=FileSystemLoader(
+        os.path.join(os.path.dirname(__file__), 'templates')))
     template = env.get_template('invoice.tex.j2')
     return template.render(invoice)
 
@@ -29,6 +32,9 @@ def escape_dict_values_latex(invoice):
             invoice[k] = escape_latex(v)
         elif type(v) == dict:
             invoice[k] = escape_dict_values_latex(v)
+        elif type(v) == list:
+            for i, item in enumerate(v):
+                v[i] = escape_dict_values_latex(item)
     return invoice
 
 
@@ -50,9 +56,11 @@ def export_latex_to_pdf(latex, pdf_file_location):
 
     FNULL = open(os.devnull, 'w')
     subprocess.call(command, shell=True, stdout=FNULL, stderr=FNULL)
+    """
     os.remove(temp_file)
     os.remove(temp_file.replace('.tex', '.aux'))
     os.remove(temp_file.replace('.tex', '.log'))
+    """
 
 
 def get_sanitized_regex_group(self, regex, string):
