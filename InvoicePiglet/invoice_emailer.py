@@ -41,6 +41,6 @@ def email_invoice(invoice, pdf_file):
         s.login(SMTP_USER, SMTP_PASSWORD)
         s.sendmail(msg['From'], msg['To'], msg.as_string())
     except smtplib.SMTPException as e:
-        logger.error("Error sending email to", invoice['customer_email'], e)
+        logger.error("Error sending email to %s", invoice['customer_email'], e)
     else:
-        logger.info("Successfully sent email to", invoice['customer_email'])
+        logger.info("Successfully sent email to %s", invoice['customer_email'])
