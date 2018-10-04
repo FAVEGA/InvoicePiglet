@@ -21,10 +21,10 @@ def email_invoice(invoice, pdf_file):
 
     part = MIMEText(
         'Estimado {},\n\n'
-        'Adjunta le enviamos la factura {}-{}.\n '
+        'Adjunta le enviamos la factura {}-{}.\n'
         'Para cualquier duda, contacte con nosotros.\n\n'
         'Un saludo,\n\n'
-        'FAVEGA S.L.\n'
+        'FAVEGA EQUIPAMIENTOS S.L.\n'
         'Ctra Logroño Km 247\n'
         '50011 ZARAGOZA\n'
         '976 77 18 65\n'
